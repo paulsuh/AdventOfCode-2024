@@ -1,0 +1,3 @@
+[submodule "Inputs"]
+	path = Inputs
+	url = https://github.com/paulsuh/AdventOfCode-2024-Inputs.git
