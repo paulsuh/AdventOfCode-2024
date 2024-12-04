@@ -22,8 +22,6 @@ mul_matches = flatten([
     for one_chunk in all_good_chunks_list
 ])
 
-match_list = findall(r"mul\((\d+),(\d+)\)", problem_input)
-
 result = sum([
     int(x)*int(y)
     for x, y in mul_matches
