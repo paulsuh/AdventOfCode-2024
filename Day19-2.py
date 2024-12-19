@@ -23,10 +23,6 @@ print(available_towels_list)
 print(desired_patterns_list)
 
 
-class NoMatchingTowels(Exception):
-    pass
-
-
 @cache
 def count_prefixes(remaining_stripes: str) -> list[str]:
     result = 0
