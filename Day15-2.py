@@ -4,27 +4,27 @@ from pprint import pprint
 from Inputs.Day15_input import problem_input, robot_moves
 
 
-problem_input = """##########
-#..O..O.O#
-#......O.#
-#.OO..O.O#
-#..O@..O.#
-#O#..O...#
-#O..O..O.#
-#.OO.O.OO#
-#....O...#
-##########"""
-
-robot_moves = """<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
-vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
-><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
-<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
-^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
-^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
->^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
-<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
-^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
-v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"""
+# problem_input = """##########
+# #..O..O.O#
+# #......O.#
+# #.OO..O.O#
+# #..O@..O.#
+# #O#..O...#
+# #O..O..O.#
+# #.OO.O.OO#
+# #....O...#
+# ##########"""
+#
+# robot_moves = """<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
+# vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
+# ><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
+# <<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
+# ^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
+# ^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
+# >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
+# <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
+# ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
+# v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"""
 
 # problem_input = """########
 # #..O.O.#
@@ -37,16 +37,16 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"""
 #
 # robot_moves = """<^^>>>vv<v>>v<<"""
 
-problem_input = """#######
-#...#.#
-#.....#
-#..OO@#
-#..O..#
-#.....#
-#######"""
-
-robot_moves = """<vv<<^^<<^^"""
-robot_moves = """<vv<<^"""
+# problem_input = """#######
+# #...#.#
+# #.....#
+# #..OO@#
+# #..O..#
+# #.....#
+# #######"""
+#
+# robot_moves = """<vv<<^^<<^^"""
+# robot_moves = """<vv<<^"""
 
 
 def map_expansion(c: str) -> str:
@@ -101,18 +101,19 @@ class BoxBlockedException(Exception):
 def check_one_box(start_row: int, start_col: int, row_move: int, col_move: int) -> list[tuple[int, int]]:
     if col_move == 1:
         # move right
-        match problem_map[start_row][start_col + 2 * col_move]:
+        offset = 1 if problem_map[start_row][start_col] == "@" else 2
+        match problem_map[start_row][start_col + offset]:
             case ".":
                 # ok to move
                 return [(start_row, start_col)]
             case "#":
                 # not ok to move
-                pprint(problem_map)
+                # pprint(problem_map)
                 raise BoxBlockedException(f"Box blocked {start_row}, {start_col} -> {start_row}, {start_col + col_move}")
             case "[":
                 # check next box
-                result = [(start_row, start_col + col_move)]
-                result += check_one_box(start_row, start_col + 2 * col_move, row_move, col_move)
+                result = [(start_row, start_col)]
+                result += check_one_box(start_row, start_col + offset, row_move, col_move)
                 return result
     elif col_move == -1:
         # move left
@@ -122,12 +123,12 @@ def check_one_box(start_row: int, start_col: int, row_move: int, col_move: int) 
                 return [(start_row, start_col)]
             case "#":
                 # not ok to move
-                pprint(problem_map)
+                # pprint(problem_map)
                 raise BoxBlockedException(f"Box blocked {start_row}, {start_col} -> {start_row}, {start_col + col_move}")
             case "]":
                 # check next box
                 result = [(start_row, start_col)]
-                result += check_one_box(start_row, start_col + 2 * col_move, row_move, col_move)
+                result += check_one_box(start_row, start_col - 2, row_move, col_move)
                 return result
     else:
         # vertical move, need to check left and right halves
@@ -139,7 +140,7 @@ def check_one_box(start_row: int, start_col: int, row_move: int, col_move: int) 
                 pass
             case "#":
                 # not ok to move
-                pprint(problem_map)
+                # pprint(problem_map)
                 raise BoxBlockedException(f"Box blocked {start_row}, {start_col} -> {start_row + row_move}, {start_col}")
             case "[":
                 # next box left half
@@ -157,13 +158,13 @@ def check_one_box(start_row: int, start_col: int, row_move: int, col_move: int) 
                     pass
                 case "#":
                     # not ok to move
-                    pprint(problem_map)
+                    # pprint(problem_map)
                     raise BoxBlockedException(f"Box blocked {start_row}, {start_col} -> {start_row + row_move}, {start_col}")
                 case "[":
                     # next box left half
                     # don't check for right half as if there is a right half
                     # then the check for the left half took care of it already
-                    result += check_one_box(start_row + row_move, start_col, row_move, col_move)
+                    result += check_one_box(start_row + row_move, start_col + 1, row_move, col_move)
         return result
 
 
@@ -174,7 +175,7 @@ def move_box(start_row: int, start_col: int, row_move: int, col_move: int) -> No
             # moving right
             if problem_map[start_row][start_col + 2 * col_move] != ".":
                 # sanity check
-                pprint(problem_map)
+                # pprint(problem_map)
                 raise RuntimeError(
                     f"Box blocked {start_row}, {start_col} -> {start_row}, {start_col + col_move}")
             problem_map[start_row][start_col + col_move + 1] = ']'
@@ -185,7 +186,7 @@ def move_box(start_row: int, start_col: int, row_move: int, col_move: int) -> No
             # moving left
             if problem_map[start_row][start_col + col_move] != ".":
                 # sanity check
-                pprint(problem_map)
+                # pprint(problem_map)
                 raise RuntimeError(
                     f"Box blocked {start_row}, {start_col} -> {start_row}, {start_col + col_move}")
             problem_map[start_row][start_col + col_move] = '['
@@ -251,7 +252,7 @@ for one_move in robot_moves:
     robot_row, robot_col = move_robot(robot_row, robot_col, r_move, c_move)
 
 print()
-pprint(problem_map)
+pprint(problem_map, width=120)
 
 #     dest_row, dest_col = locate_first_blank_square(robot_row, robot_col, r_move, c_move)
 #     if dest_row is not None:
@@ -261,10 +262,10 @@ pprint(problem_map)
 #     # pprint(problem_map)
 #     # print()
 #
-# gps_sum = 0
-# for row_num, one_row in enumerate(problem_map):
-#     for col_num, one_cell in enumerate(one_row):
-#         if one_cell == "O":
-#             gps_sum += row_num * 100 + col_num
-#
-# print(gps_sum)
+gps_sum = 0
+for row_num, one_row in enumerate(problem_map):
+    for col_num, one_cell in enumerate(one_row):
+        if one_cell == "[":
+            gps_sum += row_num * 100 + col_num
+
+print(gps_sum)
