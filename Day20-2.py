@@ -79,14 +79,14 @@ cheat_directions = (
 )
 
 
-def hamming_distance(loc1: Location, loc2: Location) -> int:
+def manhattan_distance(loc1: Location, loc2: Location) -> int:
     return abs(loc1.row - loc2.row) + abs(loc1.col - loc2.col)
 
 
 def find_cheats_for_location(loc: Location, remaining_locs: list[Location]) -> int:
     result = 0
     for one_dest in remaining_locs:
-        if (cheat_steps := hamming_distance(loc, one_dest)) <= 20:
+        if (cheat_steps := manhattan_distance(loc, one_dest)) <= 20:
             if (dist_saved := race_path.index(one_dest) - race_path.index(loc) - cheat_steps) >= 100:
                 result += 1
 
