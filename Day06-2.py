@@ -15,17 +15,6 @@ from operator import add
 # #.........
 # ......#..."""
 
-# problem_input = """....#.....
-# .........#
-# ..........
-# ..#.......
-# .......#..
-# ..........
-# .#..^.....
-# ........#.
-# #.........
-# ......#..."""
-
 # problem_input = """....#..#..
 # .........#
 # .#..^...#.
@@ -34,6 +23,8 @@ from operator import add
 # ......#..."""
 
 problem_map = problem_input.splitlines()
+map_height = len(problem_map)
+map_width = len(problem_map[0])
 
 for row_num, row in enumerate(problem_map):
     if (initial_guard_col := row.find("^")) >= 0:
@@ -49,10 +40,17 @@ for row_num, row in enumerate(problem_map):
         initial_guard_loc = (row_num, initial_guard_col, 0, 1)
         break
 
+# cheap Python trick to avoid out of bounds
+problem_map.append("." * map_width)
+problem_map = [
+    one_line + "."
+    for one_line in problem_map
+]
+
 
 print(len(problem_map), len(problem_map[0]))
-# pprint(problem_map)
-# print(initial_guard_loc)
+pprint(problem_map)
+print(initial_guard_loc)
 
 dir_rotation_dict = {
     (-1, 0): (0, 1),
@@ -68,8 +66,8 @@ def find_next_loc_dir(current_loc: tuple[int, int, int, int], current_map: list[
     for i in range(3):
         new_loc_row = current_loc[0] + new_dir[0]
         new_loc_col = current_loc[1] + new_dir[1]
-        if new_loc_row < 0 or new_loc_row >= len(current_map) or new_loc_col < 0 or new_loc_col >= len(current_map[0]):
-            raise IndexError("Guard exited map")
+        # if new_loc_row < 0 or new_loc_row >= len(current_map) or new_loc_col < 0 or new_loc_col >= len(current_map[0]):
+        #     raise IndexError("Guard exited map")
         if current_map[new_loc_row][new_loc_col] != "#":
             return new_loc_row, new_loc_col, new_dir[0], new_dir[1]
         new_dir = dir_rotation_dict[new_dir]
@@ -88,7 +86,7 @@ def run_guard_path(updated_map: list[str]) -> int | set:
     # print(f"starting at {guard_loc} {guard_dir}")
     guard_locations_dirs = set()
     try:
-        while (0 <= guard_loc[0] < len(problem_map)) and  (0 <= guard_loc[1] < len(problem_map[0])):
+        while (0 <= guard_loc[0] < map_height) and  (0 <= guard_loc[1] < map_width):
 
             guard_loc = find_next_loc_dir(guard_loc, updated_map)
             if guard_loc in guard_locations_dirs:
