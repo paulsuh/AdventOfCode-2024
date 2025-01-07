@@ -6,11 +6,11 @@ from enum import Enum
 from Inputs.Day21_input import problem_input
 
 
-problem_input = """029A
-980A
-179A
-456A
-379A"""
+# problem_input = """029A
+# 980A
+# 179A
+# 456A
+# 379A"""
 
 sequence_list = problem_input.splitlines()
 
@@ -43,91 +43,102 @@ class KeypadType(Enum):
 
 
 @cache
-def base_routes_for_keypad(start: str, end: str, keypad_type: KeypadType) -> list[str]:
+def possible_routes_for_keypad(start: str, end: str, keypad_type: KeypadType) -> set[str]:
     # if moving down and right, move right first then down
-    # if moving down and left, doesn't matter
+    # if moving down and left, move down then left
+    # if moving up and right, move right first then up
     # if moving up and left, move up first then left
-    # if moving up and right, doesn't matter
     if keypad_type == KeypadType.numeric:
         keypad = numeric_keypad
+        blank_tile = (3, 0)
     else:
         keypad = directional_keypad
+        blank_tile = (0, 0)
     start_coords = keypad[start]
     end_coords = keypad[end]
     row_delta = end_coords[0] - start_coords[0]
     col_delta = end_coords[1] - start_coords[1]
-    base_moves = ("^" if row_delta < 0 else "v") * abs(row_delta) + \
-                 ("<" if col_delta < 0 else ">") * abs(col_delta)
-    all_moves = set(permutations(base_moves))
+    r_move = "^" if row_delta < 0 else "v"
+    c_move = "<" if col_delta < 0 else ">"
 
-    return ["".join(one_route) + "A" for one_route in all_moves]
-
-
-@cache
-def pruned_routes_for_keypad(start: str, end: str, keypad_type: KeypadType) -> list[str]:
-    all_direct_routes = base_routes_for_keypad(start, end, keypad_type)
-    blocked_routes = base_routes_for_keypad(start, "b", keypad_type)
-    if len(blocked_routes) > 0:
-        prefix_len = len(blocked_routes[0])
-        result = [
-            one_route
-            for one_route in all_direct_routes
-            if one_route[:prefix_len] not in blocked_routes
-        ]
-        return result
-    else:
-        return all_direct_routes
-
-
-def all_expansions_for_sequence(key_sequence: str, keypad_type: KeypadType) -> list[tuple[str, int]]:
-    route_lists = []
-    for start_key, end_key in pairwise("A" + key_sequence):
-        key_pair_routes = pruned_routes_for_keypad(start_key, end_key, keypad_type)
-        route_lists.append(key_pair_routes)
-    all_alternative_routes = product(*route_lists)
-    result = [
-        (route_str := "".join(one_route), len(route_str))
-        for one_route in all_alternative_routes
-    ]
+    result = set()
+    if (start_coords[0], end_coords[1]) != blank_tile:
+        result.add(abs(col_delta) * c_move + abs(row_delta) * r_move + "A")
+    if (end_coords[0], start_coords[1]) != blank_tile:
+        result.add(abs(row_delta) * r_move + abs(col_delta) * c_move + "A")
     return result
 
 
-def min_length_expansions_for_sequence(key_sequence: str, keypad_type: KeypadType) -> list[tuple[str, int]]:
-    all_expansions = all_expansions_for_sequence(key_sequence, keypad_type)
-    min_len = min(x[1] for x in all_expansions)
-    return [
-        x
-        for x in all_expansions
-        if x[1] == min_len
-    ]
+def expansions_for_sequence(key_sequence: str, keypad_type: KeypadType) -> set[str]:
+    pairs_routes_list = []
+    for start_key, end_key in pairwise("A" + key_sequence):
+        key_pair_routes = possible_routes_for_keypad(start_key, end_key, keypad_type)
+        pairs_routes_list.append(key_pair_routes)
+    all_possible_routes = {
+        "".join(one_route)
+        for one_route in product(*pairs_routes_list)
+    }
+    # all_lens = {
+    #     len(r)
+    #     for r in all_possible_routes
+    # }
+    # print(all_lens)
+    min_len = min([len(r) for r in all_possible_routes])
+    result = {
+        r
+        for r in all_possible_routes
+        if len(r) == min_len
+    }
+    return result
 
 
-def complete_expansion(numeric_key_sequence: str) -> list[tuple[str, int]]:
-    numeric_expansion = min_length_expansions_for_sequence(numeric_key_sequence, KeypadType.numeric)
-    first_directional_expansion = []
-    for one_directional_ks in numeric_expansion:
-        first_directional_expansion += min_length_expansions_for_sequence(one_directional_ks[0], KeypadType.directional)
-    second_directional_expansion = []
-    for one_more_directional_ks in first_directional_expansion:
-        second_directional_expansion += min_length_expansions_for_sequence(one_more_directional_ks[0], KeypadType.directional)
-
-    return second_directional_expansion
+def complete_expansion(numeric_key_sequence: str) -> int:
+    numeric_expansion = expansions_for_sequence(numeric_key_sequence, KeypadType.numeric)
+    # print(numeric_expansion)
+    first_dir_expansion_result = set()
+    for one_expansion in numeric_expansion:
+        directional_expansion = expansions_for_sequence(one_expansion, KeypadType.directional)
+        first_dir_expansion_result |= directional_expansion
+    # print(first_dir_expansion_result)
+    second_dir_expansion_result = set()
+    for one_expansion in first_dir_expansion_result:
+        directional_expansion = expansions_for_sequence(one_expansion, KeypadType.directional)
+        second_dir_expansion_result |= directional_expansion
+    # print(second_dir_expansion_result)
+    min_len = min([len(r) for r in second_dir_expansion_result])
+    print(min_len)
+    return min_len
+    # shortest_expansions = {
+    #     r
+    #     for r in second_dir_expansion_result
+    #     if len(r) == min_len
+    # }
+    # return shortest_expansions
 
 
 def complexity_calc(key_sequence: str) -> int:
-    key_seq_expansion = complete_expansion(key_sequence)
-    expansion_len = len(key_seq_expansion)
+    key_seq_len = complete_expansion(key_sequence)
     numeric_part = int(key_sequence[:-1])
-    print(key_sequence, expansion_len, numeric_part)
-    return expansion_len * numeric_part
+    print(key_seq_len, numeric_part)
+    return key_seq_len * numeric_part
 
 
-# x = min_length_expansions_for_sequence("029A", KeypadType.numeric)
-# pprint(list(x))
+# print(possible_routes_for_keypad("A", "7", KeypadType.numeric))
+# print(possible_routes_for_keypad("A", "v", KeypadType.directional))
+# print(expansions_for_sequence("379A", KeypadType.numeric))
+
+# complete_expansion("379A")
 
 complexity_total = 0
 for one_numeric_sequence in sequence_list:
     complexity_total += complexity_calc(one_numeric_sequence)
 print(complexity_total)
-print(base_routes_for_keypad.cache_info())
-print(pruned_routes_for_keypad.cache_info())
+
+# print(base_routes_for_keypad.cache_info())
+# print(pruned_routes_for_keypad.cache_info())
+
+
+#   3  p  6  9 8   7 p    8  9 p  6   3 A p
+# ('^  A  ^  ^ <   < A    >  > A  v   v v A ', 14)
+# ('<A >A <A A v<A A >>^A vA A ^A v<A A A >^A', 28)
+# ('v<<A^>>AvA^Av<<A^>>AAv<A<A^>>AA<Av>AA^Av<A^>AA<A>Av<A<A^>>AAA<Av>A^A', 68)
